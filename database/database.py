@@ -1,0 +1,4 @@
+database = {
+    "clients": [],
+    "accounts": []
+}
