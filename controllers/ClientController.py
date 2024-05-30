@@ -6,6 +6,9 @@ class ClientController:
     def create(name, email, age):
         if (name == None or email == None or age == None):
             return { "message": "Campos em branco foram enviados", "ok": False }
+        
+        elif ClientModel.clientExists(email) == True:
+            return { "message": "Cliente já cadastrado com este email!", "ok": False }
 
         ClientModel.create(name, email, age)
         
