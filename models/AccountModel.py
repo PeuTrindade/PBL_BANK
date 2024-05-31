@@ -17,3 +17,42 @@ class AccountModel:
                 return True
             
             return False
+        
+    @staticmethod
+    def findByAccountPass(accountPass):
+        for account in database['accounts']:
+            if account["accountPass"] == accountPass:
+                return account
+            
+        return None
+    
+    @staticmethod
+    def transfer(accountPass, value):
+        for account in database['accounts']:
+            if account["accountPass"] == accountPass:
+                account["balance"] -= value
+
+                return True
+            
+            return False
+        
+    @staticmethod
+    def receive(accountPass, value):
+        for account in database['accounts']:
+            if account["accountPass"] == accountPass:
+                account["balance"] += value
+
+                return True
+            
+            return False
+        
+    @staticmethod
+    def deposit(accountPass, amount):
+        for account in database['accounts']:
+            if account["accountPass"] == accountPass:
+                account["balance"] += amount
+
+                return True
+            
+            return False
+

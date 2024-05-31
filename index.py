@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from controllers.ClientController import ClientController
 from controllers.AccountController import AccountController
+import socket
 
 app = Flask(__name__)
 
@@ -19,18 +20,20 @@ def createClient():
             return jsonify({ "message": controllerResponse['message'] }), 201
         else:
             return jsonify({ "message": controllerResponse['message'] }), 400
-    except:
-        return jsonify({ "message": "Ocorreu um erro interno!" }), 500
+        
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
     
 
-@app.route('/client', methods=['get'])
+@app.route('/client', methods=['GET'])
 def listClients():
     try:
         clients = ClientController.list()
         
         return jsonify({ "clients": clients['clients'] }), 200
-    except:
-        return jsonify({ "message": "Ocorreu um erro interno!" }), 500
+    
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
 
   
 @app.route('/account', methods=['POST'])
@@ -49,19 +52,79 @@ def createAccount():
             return jsonify({ "message": controllerResponse['message'] }), 201
         else:
             return jsonify({ "message": controllerResponse['message'] }), 400
-    except:
-        return jsonify({ "message": "Ocorreu um erro interno!" }), 500
+        
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
 
 
-@app.route('/account', methods=['get'])
+@app.route('/account', methods=['GET'])
 def listAccounts():
     try:
         accounts = AccountController.list()
         
         return jsonify({ "accounts": accounts['accounts'] }), 200
-    except:
-        return jsonify({ "message": "Ocorreu um erro interno!" }), 500
+    
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
+    
+
+@app.route('/account/auth', methods=['POST'])
+def authAccount():
+    try:
+        requestBody = request.json
+ 
+        accountPass = requestBody.get('accountPass')
+        verifyAuth = AccountController.auth(accountPass)
+
+        if verifyAuth['ok'] == False:
+            return jsonify({ "message": verifyAuth['message'] }), 400
+        
+        return jsonify({ "account": verifyAuth['account'] }), 200
+
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
+
+
+@app.route('/account/transfer/<string:fromAccountPass>', methods=['POST'])
+def transfer(fromAccountPass):
+    try:
+        requestBody = request.json
+ 
+        toAccountPass = requestBody.get('to')
+        value = requestBody.get('amount')
+        toAgency = requestBody.get('agency')
+
+        controllerResponse = AccountController.transfer(fromAccountPass, toAccountPass, toAgency, value)
+
+        if controllerResponse['ok'] == False:
+            return jsonify({ "message": controllerResponse['message'] }), 400
+        
+        return jsonify({ "account": controllerResponse['message'] }), 200
+
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
+    
+
+@app.route('/account/deposit/<string:accountPass>', methods=['PATCH'])
+def deposit(accountPass):
+    try:
+        requestBody = request.json
+        amount = requestBody.get('amount')
+
+        controllerResponse = AccountController.deposit(accountPass, amount)
+
+        if controllerResponse['ok'] == False:
+            return jsonify({ "message": controllerResponse['message'] }), 400
+        
+        return jsonify({ "account": controllerResponse['message'] }), 200
+
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    port = int(ip_address.split(".")[-1]) * 2000
+
+    app.run(host='0.0.0.0', port=port, debug=True)
