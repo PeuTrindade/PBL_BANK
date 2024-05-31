@@ -1,15 +1,27 @@
 from models.AccountModel import AccountModel
+from models.ClientModel import ClientModel
 from database.database import database
 import socket
 
 class AccountController:
     @staticmethod
+    def verifyClientIds(clientIds):
+        for id in clientIds:
+            if ClientModel.clientExistsById(id) == False:
+                return False
+            
+        return True
+
+    @staticmethod
     def create(clientIds, accountType, agency, accountPass):
-        if (clientIds == None or accountType == None or agency == None or accountPass == None):
+        if (clientIds == None or clientIds == [] or accountType == None or agency == None or accountPass == None):
             return { "message": "Campos em branco foram enviados", "ok": False }
         
         elif AccountModel.accountExists(accountPass) == True:
             return { "message": "Conta já cadastrada com este código!", "ok": False }
+        
+        elif AccountController.verifyClientIds(clientIds) == False:
+            return { "message": "Clientes inexistentes!", "ok": False }
 
         AccountModel.create(clientIds, accountType, agency, accountPass)
         
@@ -41,19 +53,14 @@ class AccountController:
 
                 if str(toAgency) == str(agency):
                     if toAccount:
-                        isTransferSucess = AccountModel.transfer(accountPass=fromAccountPass, value=value)
-                        isReceiveSuccess = AccountModel.receive(accountPass=toAccountPass, value=value)
+                        AccountModel.transfer(account=fromAccount, value=value)
+                        AccountModel.receive(account=toAccount, value=value)
 
-                        if isTransferSucess and isReceiveSuccess:
-                            return { "message": "Transferência realizada com sucesso!", "ok": True }
-                        else:
-                            if isTransferSucess == False:
-                                return { "message": "Erro na transferência!", "ok": False }
-                            
-                            return { "message": "Erro no recebimento!", "ok": False }
+                        return { "message": "Transferência realizada com sucesso!", "ok": True }
                     else:
                         return { "message": "Conta destino não encontrada!", "ok": False }
                 else:
+                    # Lógica para transferências entre bancos distintos.
                     return { "message": "Transferência realizada para outro banco com sucesso!", "ok": True }
             else:
                 return { "message": "Saldo insuficiente!", "ok": False }
@@ -66,8 +73,22 @@ class AccountController:
         account = AccountModel.findByAccountPass(accountPass)
 
         if account:
-            AccountModel.deposit(accountPass, amount)
+            AccountModel.deposit(account, amount)
             
             return { "message": "Depósito realizado com sucesso!", "ok": True }
+
+        return { "message": "Conta não encontrada!", "ok": False }
+    
+    @staticmethod
+    def withdraw(accountPass, amount):
+        account = AccountModel.findByAccountPass(accountPass)
+
+        if account:
+            if account['balance'] >= amount:
+                AccountModel.withdraw(account, amount)
+            
+                return { "message": "Saque realizado com sucesso!", "ok": True }
+            
+            return { "message": "Saldo insuficiente!", "ok": False }
 
         return { "message": "Conta não encontrada!", "ok": False }

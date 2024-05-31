@@ -11,12 +11,16 @@ class AccountModel:
     @staticmethod
     def accountExists(accountPass):
         accounts = database['accounts']
+        acc = None
 
         for account in accounts:
             if account["accountPass"] == accountPass:
-                return True
+                acc = account
             
-            return False
+        if acc:
+            return True
+        
+        return False
         
     @staticmethod
     def findByAccountPass(accountPass):
@@ -27,32 +31,18 @@ class AccountModel:
         return None
     
     @staticmethod
-    def transfer(accountPass, value):
-        for account in database['accounts']:
-            if account["accountPass"] == accountPass:
-                account["balance"] -= value
-
-                return True
-            
-            return False
+    def transfer(account, value):
+        account["balance"] -= value
         
     @staticmethod
-    def receive(accountPass, value):
-        for account in database['accounts']:
-            if account["accountPass"] == accountPass:
-                account["balance"] += value
-
-                return True
-            
-            return False
+    def receive(account, value):
+        account["balance"] += value           
         
     @staticmethod
-    def deposit(accountPass, amount):
-        for account in database['accounts']:
-            if account["accountPass"] == accountPass:
-                account["balance"] += amount
+    def deposit(account, amount):
+        account['balance'] += amount
 
-                return True
-            
-            return False
+    @staticmethod
+    def withdraw(account, amount):
+        account['balance'] -= amount
 

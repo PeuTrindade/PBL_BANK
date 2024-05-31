@@ -121,6 +121,23 @@ def deposit(accountPass):
     except Exception as e:
         return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
 
+   
+@app.route('/account/withdraw/<string:accountPass>', methods=['PATCH'])
+def withdraw(accountPass):
+    try:
+        requestBody = request.json
+        amount = requestBody.get('amount')
+
+        controllerResponse = AccountController.withdraw(accountPass, amount)
+
+        if controllerResponse['ok'] == False:
+            return jsonify({ "message": controllerResponse['message'] }), 400
+        
+        return jsonify({ "account": controllerResponse['message'] }), 200
+
+    except Exception as e:
+        return jsonify({ "message": "Ocorreu um erro interno: " + str(e)  }), 500
+
 
 if __name__ == '__main__':
     hostname = socket.gethostname()

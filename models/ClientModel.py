@@ -11,10 +11,27 @@ class ClientModel:
     @staticmethod
     def clientExists(email):
         clients = database['clients']
+        client = None
 
-        for cliente in clients:
-            if cliente["email"] == email:
-                return True
+        for c in clients:
+            if c["email"] == email:
+                client = c
             
-            return False
+        if client:
+            return True
+        
+        return False
     
+    @staticmethod
+    def clientExistsById(id):
+        clients = database['clients']
+        client = None
+
+        for c in clients:
+            if c["id"] == id:
+                client = c
+            
+        if client:
+            return True
+        
+        return False
